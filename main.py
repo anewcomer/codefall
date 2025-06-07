@@ -13,38 +13,44 @@ import time
 # --- Glyph Definitions ---
 # Each glyph is a list of 8 bytes, representing 8 rows of 4 pixels each.
 # The most significant 4 bits of each byte are used for the 4-pixel width.
-
 GLYPHS = [
-    # Glyph 0: A simple vertical line
+    # Katakana-like / Abstract digital symbols (4x8 pixels)
     bytearray([0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000]),
-
-    # Glyph 1: Diagonal
-    bytearray([0b10000000, 0b01000000, 0b00100000, 0b00010000, 0b10000000, 0b01000000, 0b00100000, 0b00010000]),
-
-    # Glyph 2: Blocky 'E'
-    bytearray([0b11100000, 0b10000000, 0b11000000, 0b10000000, 0b11100000, 0b00000000, 0b00000000, 0b00000000]),
-
-    # Glyph 3: Some random pattern
-    bytearray([0b10100000, 0b01010000, 0b10100000, 0b01010000, 0b10100000, 0b01010000, 0b10100000, 0b01010000]),
-
-    # Glyph 4: Stacked blocks
-    bytearray([0b11000000, 0b11000000, 0b00000000, 0b11000000, 0b11000000, 0b00000000, 0b11000000, 0b11000000]),
-
-    # Glyph 5: Another diagonal with a twist
-    bytearray([0b00010000, 0b00100000, 0b01000000, 0b10000000, 0b00010000, 0b00100000, 0b01000000, 0b10000000]),
-
-    # Glyph 6: A simple 'X'
-    bytearray([0b10010000, 0b01100000, 0b01100000, 0b10010000, 0b10010000, 0b01100000, 0b01100000, 0b10010000]),
-    
-    # Glyph 7: A sort of 'H'
-    bytearray([0b10010000, 0b10010000, 0b11110000, 0b10010000, 0b10010000, 0b00000000, 0b00000000, 0b00000000]),
-
-    # Glyph 8: Random dots
-    bytearray([0b10000000, 0b00100000, 0b01000000, 0b00010000, 0b10000000, 0b00100000, 0b01000000, 0b00010000]),
-
-    # Glyph 9: Solid block (very visible)
-    bytearray([0b11110000, 0b11110000, 0b11110000, 0b11110000, 0b11110000, 0b11110000, 0b11110000, 0b11110000]),
+    bytearray([0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000]), # | (Thin I, offset)
+    bytearray([0b11110000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b11110000]), # [ ] (Bracket-like)
+    bytearray([0b11100000, 0b10000000, 0b11100000, 0b10000000, 0b10000000, 0b10000000, 0b11100000, 0b00000000]), # E-like
+    bytearray([0b11110000, 0b10000000, 0b11100000, 0b10000000, 0b11110000, 0b00000000, 0b00000000, 0b00000000]), # B-like
+    bytearray([0b01000000, 0b11100000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b00000000]), # T-like
+    bytearray([0b10010000, 0b10010000, 0b11110000, 0b10010000, 0b10010000, 0b10010000, 0b10010000, 0b00000000]), # H-like
+    bytearray([0b11110000, 0b00100000, 0b01000000, 0b10000000, 0b00100000, 0b01000000, 0b11110000, 0b00000000]), # Z-like / N-like
+    bytearray([0b10000000, 0b01000000, 0b00100000, 0b00010000, 0b00010000, 0b00100000, 0b01000000, 0b10000000]), # X-like (thin)
+    bytearray([0b01100000, 0b10010000, 0b10010000, 0b01100000, 0b10010000, 0b10010000, 0b01100000, 0b00000000]), # 8-like / S-like
+    bytearray([0b11100000, 0b10100000, 0b10100000, 0b11100000, 0b10100000, 0b10100000, 0b11100000, 0b00000000]), # Grid-like
+    bytearray([0b00000000, 0b11110000, 0b10010000, 0b10010000, 0b10010000, 0b11110000, 0b00000000, 0b00000000]), # 0-like / O-like
+    bytearray([0b00100000, 0b01100000, 0b10100000, 0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b00000000]), # 1-like / J-like
+    bytearray([0b11000000, 0b01000000, 0b01000000, 0b11000000, 0b10000000, 0b10000000, 0b11110000, 0b00000000]), # P-like / R-like
+    bytearray([0b11110000, 0b10000000, 0b11110000, 0b00010000, 0b00010000, 0b00010000, 0b11110000, 0b00000000]), # F-like / 5-like
+    bytearray([0b01100000, 0b10010000, 0b00100000, 0b01000000, 0b10010000, 0b10010000, 0b01100000, 0b00000000]), # G-like / 6-like
 ]
+# --- Additional Glyphs to reach 32 total ---
+GLYPHS.extend([
+    bytearray([0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b11110000, 0b01100000, 0b00100000, 0b00000000]), # Arrow Down-like
+    bytearray([0b00100000, 0b01100000, 0b11110000, 0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b00000000]), # Arrow Up-like
+    bytearray([0b00000000, 0b00100000, 0b00100000, 0b11110000, 0b00100000, 0b00100000, 0b00000000, 0b00000000]), # Plus-like
+    bytearray([0b00000000, 0b00000000, 0b00000000, 0b11110000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]), # Minus-like
+    bytearray([0b00000000, 0b01100000, 0b01100000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]), # Small Square
+    bytearray([0b10100000, 0b01010000, 0b10100000, 0b01010000, 0b10100000, 0b01010000, 0b10100000, 0b01010000]), # Checkerboard
+    bytearray([0b10010000, 0b01100000, 0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b00000000]), # Y-like
+    bytearray([0b10010000, 0b10100000, 0b11000000, 0b10100000, 0b10010000, 0b10010000, 0b10010000, 0b00000000]), # K-like
+    bytearray([0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b11110000, 0b00000000]), # L-like
+    bytearray([0b01110000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b01110000, 0b00000000]), # C-like
+    bytearray([0b10010000, 0b10010000, 0b10010000, 0b10010000, 0b10010000, 0b10010000, 0b01100000, 0b00000000]), # U-like
+    bytearray([0b10010000, 0b10010000, 0b10010000, 0b01100000, 0b01100000, 0b00100000, 0b00100000, 0b00000000]), # V-like
+    bytearray([0b10010000, 0b10010000, 0b10010000, 0b10100000, 0b11110000, 0b10100000, 0b10100000, 0b00000000]), # W-like
+    bytearray([0b01100000, 0b10010000, 0b00010000, 0b00100000, 0b00100000, 0b00000000, 0b00100000, 0b00000000]), # Question Mark-like
+    bytearray([0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b00000000, 0b00100000, 0b00000000]), # Exclamation Mark-like
+    bytearray([0b00000000, 0b01100000, 0b01100000, 0b00000000, 0b10010000, 0b01100000, 0b00000000, 0b00000000]), # Abstract Smiley-like
+])
 
 NUM_GLYPHS = len(GLYPHS)
 GLYPH_WIDTH = 4
@@ -75,12 +81,15 @@ thumby.display.update()
 # --- Game State Variables ---
 column_states = []
 for _ in range(COLS):
+    trail_len = random.randint(1, 3) # Max 3 trail glyphs (total 4 with head)
+    trail_glyph_indices = [random.randint(0, NUM_GLYPHS - 1) for _ in range(trail_len)]
     column_states.append({
         'head_y': random.randint(-GLYPH_HEIGHT * (ROWS + 2), -GLYPH_HEIGHT), # Start significantly off-screen top
-        'trail_len': random.randint(3, ROWS),
+        'trail_len': trail_len,
         'glyph_idx': random.randint(0, NUM_GLYPHS - 1),
+        'trail_glyph_indices': trail_glyph_indices,
         'speed_counter': 0,
-        'speed_threshold': random.randint(1, 3) # Slower speeds to try and see animation
+        'speed_threshold': random.randint(1, 7) # Greater variation in speeds
     })
 
 # --- Main Game Loop ---
@@ -97,12 +106,11 @@ while True:
         # Use our custom draw function
         draw_glyph_pixels(head_glyph, x, head_y_pixel, GLYPH_WIDTH, GLYPH_HEIGHT, 1) # White
 
-        # Draw the trail glyphs
-        for i in range(1, col_data['trail_len'] + 1):
-            trail_y_pixel = head_y_pixel - (i * GLYPH_HEIGHT)
-            # Random glyph for each part of the trail for more chaos
-            trail_glyph = GLYPHS[random.randint(0, NUM_GLYPHS - 1)]
-            # Use our custom draw function
+        # Draw the trail glyphs (which are fixed for this column's fall)
+        for i in range(col_data['trail_len']): # i from 0 to trail_len-1
+            trail_y_pixel = head_y_pixel - ((i + 1) * GLYPH_HEIGHT) # Glyph i is (i+1) positions above head
+            trail_glyph_idx = col_data['trail_glyph_indices'][i]
+            trail_glyph = GLYPHS[trail_glyph_idx]
             draw_glyph_pixels(trail_glyph, x, trail_y_pixel, GLYPH_WIDTH, GLYPH_HEIGHT, 1) # White
 
     # Update column states for scrolling
@@ -112,16 +120,18 @@ while True:
             col_data['head_y'] += 1 # Move down by 1 pixel
             col_data['speed_counter'] = 0 # Reset counter
 
-            # If the entire column (head + trail) has scrolled off the bottom
-            if col_data['head_y'] > thumby.display.height + (col_data['trail_len'] * GLYPH_HEIGHT):
+            # If the head glyph has scrolled off the bottom
+            # (The trail is above the head, so it's already off-screen)
+            if col_data['head_y'] >= thumby.display.height:
                 # Reset to start off-screen top, with new random properties
-                col_data['head_y'] = random.randint(-GLYPH_HEIGHT * (ROWS + 2), -GLYPH_HEIGHT)
-                col_data['trail_len'] = random.randint(3, ROWS)
+                col_data['head_y'] = random.randint(-GLYPH_HEIGHT * (ROWS + 1), -GLYPH_HEIGHT) # Adjusted starting range slightly
+                col_data['trail_len'] = random.randint(1, 3) # Max 3 trail glyphs
                 col_data['glyph_idx'] = random.randint(0, NUM_GLYPHS - 1)
-                col_data['speed_threshold'] = random.randint(1, 3)
+                col_data['trail_glyph_indices'] = [random.randint(0, NUM_GLYPHS - 1) for _ in range(col_data['trail_len'])]
+                col_data['speed_threshold'] = random.randint(1, 4) # Greater variation in speeds
 
     thumby.display.update() # Update the physical display
 
     # Control animation speed. This might need fine-tuning.
     # Start with a slower value and decrease if it's too choppy/slow.
-    time.sleep(0.02) # Try 0.01 for faster, 0.05 for slower, 0.005 if possible.
+    time.sleep(0.01) # Adjusted for potentially smoother, more consistent animation
