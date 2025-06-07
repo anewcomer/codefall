@@ -59,20 +59,47 @@ GLYPH_HEIGHT = 8
 COLS = thumby.display.width // GLYPH_WIDTH  # 72 / 4 = 18 columns
 ROWS = thumby.display.height // GLYPH_HEIGHT # 40 / 8 = 5 rows
 
-# --- Custom draw_glyph_pixels function (re-used from diagnostic) ---
-# Draws a glyph using setPixel for each pixel
-def draw_glyph_pixels(glyph_data, draw_x, draw_y, width, height, color):
-    for row_idx in range(height):
-        byte_data = glyph_data[row_idx]
-        for col_idx in range(width):
-            # Check if the pixel at this position in the bitmap is 'on' (1)
-            # We are interested in the most significant 4 bits for our 4-pixel width
-            if (byte_data >> (7 - col_idx)) & 0x01:
-                # Only set pixel if within screen bounds (crucial for performance and avoiding errors)
-                pixel_x = draw_x + col_idx
-                pixel_y = draw_y + row_idx
-                if 0 <= pixel_x < thumby.display.width and 0 <= pixel_y < thumby.display.height:
-                    thumby.display.setPixel(pixel_x, pixel_y, color)
+# --- Optimized draw_glyph_pixels function using direct buffer access ---
+# Draws a glyph by directly manipulating thumby.display.display.buffer
+# Assumes thumby.display.fill(0) has been called prior to any calls in a frame.
+# Assumes color is 1 (ON), drawing on a black background cleared by fill(0).
+def draw_glyph_pixels(glyph_data, draw_x, draw_y, glyph_w, glyph_h):
+    # Cache display dimensions
+    disp_width = thumby.display.width
+    disp_height = thumby.display.height
+
+    # Early exit if entire glyph is off-screen
+    if draw_x >= disp_width or (draw_x + glyph_w) <= 0 or \
+       draw_y >= disp_height or (draw_y + glyph_h) <= 0:
+        return
+
+    buffer = thumby.display.display.buffer
+
+    for r_offset in range(glyph_h):  # Iterate through each row of the glyph (0 to GLYPH_HEIGHT-1)
+        screen_y = draw_y + r_offset
+
+        # Skip row if it's entirely off-screen vertically
+        if not (0 <= screen_y < disp_height):
+            continue
+
+        glyph_row_data = glyph_data[r_offset] # Get the byte for the current glyph row
+        
+        # Calculate the byte index in the screen buffer for this screen_y's page
+        # and the bit mask for the pixel within that byte.
+        page_offset = (screen_y // 8) * disp_width
+        bit_to_set = 1 << (screen_y % 8)
+
+        for c_offset in range(glyph_w):  # Iterate through each column of the glyph (0 to GLYPH_WIDTH-1)
+            screen_x = draw_x + c_offset
+
+            # Skip pixel if it's off-screen horizontally
+            if not (0 <= screen_x < disp_width):
+                continue
+
+            # Check if the pixel in the glyph definition (most significant 4 bits) is set
+            if (glyph_row_data >> (7 - c_offset)) & 0x01:
+                buffer_idx = screen_x + page_offset
+                buffer[buffer_idx] |= bit_to_set
 
 # --- Initialize Thumby Display ---
 thumby.display.fill(0)
@@ -104,14 +131,14 @@ while True:
         head_y_pixel = col_data['head_y']
         head_glyph = GLYPHS[col_data['glyph_idx']]
         # Use our custom draw function
-        draw_glyph_pixels(head_glyph, x, head_y_pixel, GLYPH_WIDTH, GLYPH_HEIGHT, 1) # White
+        draw_glyph_pixels(head_glyph, x, head_y_pixel, GLYPH_WIDTH, GLYPH_HEIGHT)
 
         # Draw the trail glyphs (which are fixed for this column's fall)
         for i in range(col_data['trail_len']): # i from 0 to trail_len-1
             trail_y_pixel = head_y_pixel - ((i + 1) * GLYPH_HEIGHT) # Glyph i is (i+1) positions above head
             trail_glyph_idx = col_data['trail_glyph_indices'][i]
             trail_glyph = GLYPHS[trail_glyph_idx]
-            draw_glyph_pixels(trail_glyph, x, trail_y_pixel, GLYPH_WIDTH, GLYPH_HEIGHT, 1) # White
+            draw_glyph_pixels(trail_glyph, x, trail_y_pixel, GLYPH_WIDTH, GLYPH_HEIGHT)
 
     # Update column states for scrolling
     for col_data in column_states:
@@ -120,9 +147,11 @@ while True:
             col_data['head_y'] += 1 # Move down by 1 pixel
             col_data['speed_counter'] = 0 # Reset counter
 
-            # If the head glyph has scrolled off the bottom
-            # (The trail is above the head, so it's already off-screen)
-            if col_data['head_y'] >= thumby.display.height:
+            # If the *entire column* (head + all trail glyphs) has scrolled off the bottom.
+            # This means the top edge of the topmost trail glyph is at or below the screen's bottom edge.
+            top_of_topmost_glyph_y = col_data['head_y'] - (col_data['trail_len'] * GLYPH_HEIGHT)
+            
+            if top_of_topmost_glyph_y >= thumby.display.height:
                 # Reset to start off-screen top, with new random properties
                 col_data['head_y'] = random.randint(-GLYPH_HEIGHT * (ROWS + 1), -GLYPH_HEIGHT) # Adjusted starting range slightly
                 col_data['trail_len'] = random.randint(1, 3) # Max 3 trail glyphs
