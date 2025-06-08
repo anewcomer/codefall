@@ -2,22 +2,22 @@
 
 This document outlines the planned features and development stages for Thumby Codefall.
 
-## Completed: Milestone 1 - Simulated Depth Effect
-
-**Original Goal:** Add simulated "depth" to the rain effect, where some columns are closer in the foreground, and others appear more in the background.
-
-**Status: Implemented!**
+## Milestone 1: Simulated Depth Effect
+**Original Goal:** Add simulated "depth" to the rain effect.
+**Status: Implemented & Enhanced!**
 
 **Key Features Achieved (as per `Codefall.py`):**
-*   **Depth Property:** Each column now has a `depth_type` (`foreground`, `midground`, `background`) stored in `column_states`.
+*   **Depth Property:** Each column now has a `depth_type` (e.g., `layer1_farthest` to `layer5_nearest`) stored in `column_states`.
+    *   Expanded from 3 to **5 distinct depth layers** for a more nuanced effect.
 *   **Varied Properties by Depth:**
-    *   **Speed:** Background columns move slower, foreground columns faster. This is controlled by `speed_min` and `speed_max` in the `DEPTH_LEVELS` dictionary.
-    *   **Rendering Frequency (Simulated Brightness/Fading):** Background elements are rendered less frequently (e.g., skipping frames for `background` which has `render_skip: 1`) using the `render_skip` property in `DEPTH_LEVELS`.
-*   **`column_states` Modification:** Each column state now includes `depth_type`, `speed_threshold` (derived from depth), and `render_counter`.
+    *   **Speed:** Columns at different depths have distinct and wider ranges for `speed_min` and `speed_max` in `DEPTH_LEVELS`, increasing variability.
+    *   **Dimming Pattern (Simulated Brightness/Fading):** Farthest layers use a `dim_pattern` (checkerboard) to appear less distinct.
+    *   **Glyph Set:** Different depth layers now use different glyph sets (`small`, `medium`, `large`) via `glyph_set_key` in `DEPTH_LEVELS`, significantly enhancing the visual depth.
+*   **`column_states` Modification:** Each column state includes `depth_type`, `base_speed_threshold`, `speed_counter`, `current_glyph_set_key`, `glyph_w`, `glyph_h`, `num_glyphs_in_set`, and `draw_x`.
 *   **Main Loop Update:**
     *   Columns are assigned a random depth on initialization/reset.
-    *   Speed updates and rendering logic now factor in the column's depth.
-*   **Glyph Size:** For this iteration, the project stuck with the existing 4x8 glyphs and simulated depth primarily through speed and rendering frequency.
+    *   Speed updates and rendering logic now factor in the column's depth properties.
+*   **Overlapping Columns:** Column placements are now fully randomized horizontally (`draw_x`), allowing them to overlap and further enhancing the depth illusion.
 
 **Initial Discussion (Archived from previous state):**
 > Coding partner
@@ -54,25 +54,35 @@ This document outlines the planned features and development stages for Thumby Co
 > Background: Slowest, drawn less frequently (to simulate fading/flickering).
 
 ## Future Milestones (Potential Next Steps)
+## Milestone 2: Enhanced Visuals & Customization
+**Status: Partially Implemented**
 
-*   **Milestone 2: Enhanced Visuals & Customization**
-    *   **Glyph Variation:**
-        *   Option 1: Introduce a second, smaller glyph set (e.g., 2x4 or 3x6) for background elements to create a more pronounced depth effect. This would require updating `draw_glyph_pixels` or adding a new drawing function.
-        *   Option 2: Allow the "head" glyph of a column to be visually distinct (e.g., brighter, or a specific "leader" glyph).
-    *   **"Color" Themes (Simulated):**
-        *   Explore an "inverse" mode (white background, black glyphs).
-    *   **Trail Effects:**
-        *   Fading trail: Glyphs in a trail could become progressively "dimmer" (rendered even less frequently).
-        *   Dynamic trail length based on depth or other factors.
+*   **Glyph Variation:**
+    *   **Implemented:** Multiple glyph sets (`GLYPHS_SMALL`, `GLYPHS` (medium), `GLYPHS_LARGE`) are defined and used by different depth layers.
+    *   **Implemented:** Glyphs now morph into other glyphs within their set, adding dynamic visual variation.
+    *   *To Do (Option 2):* Allow the "head" glyph of a column to be *always* visually distinct (e.g., brighter, or a specific "leader" glyph beyond current morphing).
+*   **Trail Effects:**
+    *   **Implemented:** Dynamic trail length (`trail_len`) is randomized for each column upon reset.
+    *   *To Do:* Fading trail: Glyphs in a trail could become progressively "dimmer".
 
-*   **Milestone 3: User Interaction & Controls**
-    *   **Button Controls:**
-        *   Allow users to pause/resume the animation.
-        *   Control overall speed.
-        *   Cycle through different visual themes or glyph sets (if implemented).
+## Milestone 3: User Interaction & Controls
+**Status: Partially Implemented**
 
-*   **Milestone 4: Performance & Refinement**
-    *   **Code Cleanup:** General refactoring for clarity and maintainability.
-    *   **Further Optimization:** Profile and identify any remaining performance bottlenecks.
+*   **Button Controls:**
+    *   **Implemented:** Pause/resume the animation (Button A: `is_frozen`).
+    *   **Implemented:** Control overall speed (D-Pad Up/Down: `GLOBAL_SPEED_ADJUSTMENT`).
+    *   **Implemented:** Control glyph density/number of streaks (D-Pad Left/Right: `current_num_columns`).
+    *   **Implemented:** Reset animation to initial state (Button B: `full_reset_animation`).
+    *   *To Do:* Cycle through different visual themes or glyph sets (if implemented).
+
+## Milestone 4: Performance & Refinement
+**Status: In Progress / Partially Implemented**
+
+*   **Code Cleanup:**
+    *   **Implemented:** General refactoring for clarity and maintainability (e.g., `_get_drawing_glyph_data` helper, modularized title screen drawing, consistent reset behavior).
+*   **Optimization:**
+    *   **Implemented:** Optimized glyph drawing using direct buffer manipulation (`draw_glyph_pixels`).
+    *   **Implemented:** Title screen initialization logic improved.
+    *   *To Do:* Profile and identify any further performance bottlenecks, especially with increased streak counts and morphing.
 
 These milestones are suggestions and can be prioritized or modified as the project evolves.

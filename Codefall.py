@@ -193,11 +193,11 @@ INITIAL_STREAKS = 25 # Default number of streaks to start with (Increased for hi
 # --- Depth Configuration ---
 DEPTH_LEVELS = {
     # 5 layers for enhanced depth
-    'layer1_farthest': {'speed_min': 9, 'speed_max': 12, 'dim_pattern': 1, 'glyph_set_key': 'small'}, # Slowest, dimmest
-    'layer2_far':      {'speed_min': 7, 'speed_max': 10, 'dim_pattern': 1, 'glyph_set_key': 'small'},
-    'layer3_mid':      {'speed_min': 4, 'speed_max':  7, 'dim_pattern': 0, 'glyph_set_key': 'medium'},# Solid
-    'layer4_near':     {'speed_min': 2, 'speed_max':  5, 'dim_pattern': 0, 'glyph_set_key': 'large'}, # Solid
-    'layer5_nearest':  {'speed_min': 1, 'speed_max':  3, 'dim_pattern': 0, 'glyph_set_key': 'large'}, # Fastest, solid
+    'layer1_farthest': {'speed_min': 16, 'speed_max': 22, 'dim_pattern': 1, 'glyph_set_key': 'small'}, # Slowest, wider range
+    'layer2_far':      {'speed_min': 11, 'speed_max': 17, 'dim_pattern': 1, 'glyph_set_key': 'small'}, # Slower, wider range
+    'layer3_mid':      {'speed_min': 6,  'speed_max': 12, 'dim_pattern': 0, 'glyph_set_key': 'medium'},# Wider range
+    'layer4_near':     {'speed_min': 3,  'speed_max': 7,  'dim_pattern': 0, 'glyph_set_key': 'large'}, # Wider range
+    'layer5_nearest':  {'speed_min': 1,  'speed_max': 4,  'dim_pattern': 0, 'glyph_set_key': 'large'}, # Fastest, slightly wider range
 }
 DEPTH_TYPES = list(DEPTH_LEVELS.keys())
 
@@ -288,6 +288,19 @@ def get_interpolated_glyph_frame(source_glyph_data, target_glyph_data, progress,
         interpolated_data[r] = interpolated_row_byte
     return interpolated_data
 
+# --- Helper function to get glyph data for drawing (handles morphing) ---
+def _get_drawing_glyph_data(glyph_morph_state, all_glyphs_in_set, glyph_w, glyph_h):
+    """
+    Determines the actual glyph data to draw, considering morphing.
+    Returns a bytearray for the glyph.
+    """
+    if glyph_morph_state['target_id'] != -1: # Morphing
+        source_glyph_data = all_glyphs_in_set[glyph_morph_state['id']]
+        target_glyph_data = all_glyphs_in_set[glyph_morph_state['target_id']]
+        return get_interpolated_glyph_frame(
+            source_glyph_data, target_glyph_data, glyph_morph_state['progress'],
+            glyph_w, glyph_h)
+    return all_glyphs_in_set[glyph_morph_state['id']] # Not morphing
 # --- Initialize Thumby Display ---
 thumby.display.fill(0)
 thumby.display.update()
@@ -328,10 +341,11 @@ def full_reset_animation():
     global is_frozen, GLOBAL_SPEED_ADJUSTMENT, column_states, current_num_columns
     
     is_frozen = False
-    GLOBAL_SPEED_ADJUSTMENT = 0
+    GLOBAL_SPEED_ADJUSTMENT = INITIAL_GLOBAL_SPEED_ADJUSTMENT # Reset to defined initial speed
+    current_num_columns = INITIAL_STREAKS                   # Reset to defined initial density
 
     column_states = []
-    for _ in range(current_num_columns): # Use the current_num_columns
+    for _ in range(current_num_columns): # Use the (now reset) current_num_columns
         new_col_data = {}
         reset_column_state(new_col_data)
         column_states.append(new_col_data)
@@ -339,75 +353,74 @@ def full_reset_animation():
 def initialize_title_screen_state():
     global title_anim_letter_ys, title_anim_current_letter_idx, title_anim_is_complete
     global title_anim_next_letter_to_start_idx, title_anim_stagger_counter
-
+    
+    # title_anim_current_letter_idx is unused, remove from globals if not reintroduced
     title_anim_letter_ys = [TITLE_ANIM_START_Y] * len(APP_TITLE_STRING)
     title_anim_is_complete = False
     title_anim_next_letter_to_start_idx = 0
     title_anim_stagger_counter = 0
 
-def draw_title_screen():
-    global title_anim_letter_ys, title_anim_current_letter_idx, title_anim_is_complete
+def _animate_title_letters():
+    """Handles the animation logic for title letters falling into place."""
+    global title_anim_letter_ys, title_anim_is_complete
     global title_anim_next_letter_to_start_idx, title_anim_stagger_counter
 
-    # --- Animate Title Letters ---
-    all_letters_landed_check = True # Assume all are landed until proven otherwise
-    if not title_anim_is_complete:
-        # Stagger start of new letters
-        if title_anim_next_letter_to_start_idx < len(APP_TITLE_STRING):
-            title_anim_stagger_counter += 1
-            if title_anim_stagger_counter >= TITLE_ANIM_LETTER_START_DELAY_FRAMES:
-                title_anim_next_letter_to_start_idx += 1
-                title_anim_stagger_counter = 0
+    if title_anim_is_complete:
+        return
 
-        # Animate all letters that have started
-        for i in range(title_anim_next_letter_to_start_idx):
-            if title_anim_letter_ys[i] < TITLE_ANIM_TARGET_Y:
-                title_anim_letter_ys[i] = min(TITLE_ANIM_TARGET_Y, title_anim_letter_ys[i] + TITLE_ANIM_FALL_SPEED)
-                all_letters_landed_check = False # At least one letter is still moving
-            # If title_anim_letter_ys[i] is already >= TITLE_ANIM_TARGET_Y, it's landed
-        
-        # Check if all letters that *should* have started have also landed
-        if all_letters_landed_check and title_anim_next_letter_to_start_idx == len(APP_TITLE_STRING):
-            title_anim_is_complete = True
-            
-    # --- Draw Title Letters ---
+    all_letters_landed_check = True
+    if title_anim_next_letter_to_start_idx < len(APP_TITLE_STRING):
+        title_anim_stagger_counter += 1
+        if title_anim_stagger_counter >= TITLE_ANIM_LETTER_START_DELAY_FRAMES:
+            title_anim_next_letter_to_start_idx += 1
+            title_anim_stagger_counter = 0
+
+    for i in range(title_anim_next_letter_to_start_idx):
+        if title_anim_letter_ys[i] < TITLE_ANIM_TARGET_Y:
+            title_anim_letter_ys[i] = min(TITLE_ANIM_TARGET_Y, title_anim_letter_ys[i] + TITLE_ANIM_FALL_SPEED)
+            all_letters_landed_check = False
+    
+    if all_letters_landed_check and title_anim_next_letter_to_start_idx == len(APP_TITLE_STRING):
+        title_anim_is_complete = True
+
+def _draw_title_text_elements():
+    """Draws the main title string using its animated Y positions."""
+    global title_anim_letter_ys # Relies on the animated Y positions
+
     title_total_pixel_width = (len(APP_TITLE_STRING) * TITLE_CHAR_WIDTH) + \
                               ((len(APP_TITLE_STRING) - 1) * TITLE_CHAR_SPACING)
     current_draw_x = (thumby.display.width - title_total_pixel_width) // 2
 
     for i, char_code in enumerate(APP_TITLE_STRING):
         if char_code in TITLE_FONT_GLYPHS:
-            glyph_data = TITLE_FONT_GLYPHS[char_code]
-            draw_glyph_pixels(glyph_data, current_draw_x, title_anim_letter_ys[i], TITLE_CHAR_WIDTH, TITLE_CHAR_HEIGHT)
+            draw_glyph_pixels(TITLE_FONT_GLYPHS[char_code], current_draw_x, title_anim_letter_ys[i], TITLE_CHAR_WIDTH, TITLE_CHAR_HEIGHT)
         current_draw_x += TITLE_CHAR_WIDTH + TITLE_CHAR_SPACING
 
-    # --- Draw Help Text using custom font if Title Animation is Complete ---
+def _draw_help_text_elements():
+    """Draws the help text below the title."""
+    current_help_y = TITLE_ANIM_TARGET_Y + TITLE_CHAR_HEIGHT + 5
+    help_lines = [HELP_LINE_1, HELP_LINE_2, HELP_LINE_3]
+
+    for line_text in help_lines:
+        line_pixel_width = (len(line_text) * HELP_CHAR_WIDTH) + \
+                           ((len(line_text) - 1) * HELP_CHAR_SPACING if len(line_text) > 0 else 0)
+        current_help_x = (thumby.display.width - line_pixel_width) // 2
+        
+        for char_code in line_text:
+            if char_code == ' ':
+                current_help_x += HELP_CHAR_WIDTH + HELP_CHAR_SPACING 
+            elif char_code in HELP_TEXT_FONT_GLYPHS:
+                draw_glyph_pixels(HELP_TEXT_FONT_GLYPHS[char_code], current_help_x, current_help_y, HELP_CHAR_WIDTH, HELP_CHAR_HEIGHT)
+                current_help_x += HELP_CHAR_WIDTH + HELP_CHAR_SPACING
+        current_help_y += HELP_CHAR_HEIGHT + HELP_LINE_SPACING
+
+def draw_title_screen():
+    """Manages drawing all elements of the title screen."""
+    _animate_title_letters()
+    _draw_title_text_elements()
     if title_anim_is_complete:
-        current_help_y = TITLE_ANIM_TARGET_Y + TITLE_CHAR_HEIGHT + 5 # Start Y for first help line
+        _draw_help_text_elements()
 
-        help_lines = [HELP_LINE_1, HELP_LINE_2, HELP_LINE_3]
-
-        for line_text in help_lines:
-            line_pixel_width = (len(line_text) * HELP_CHAR_WIDTH) + \
-                               ((len(line_text) - 1) * HELP_CHAR_SPACING if len(line_text) > 0 else 0)
-            current_help_x = (thumby.display.width - line_pixel_width) // 2
-            
-            for char_code in line_text:
-                if char_code == ' ': # Handle spaces by advancing X
-                    current_help_x += HELP_CHAR_WIDTH + HELP_CHAR_SPACING 
-                elif char_code in HELP_TEXT_FONT_GLYPHS:
-                    glyph_data = HELP_TEXT_FONT_GLYPHS[char_code]
-                    draw_glyph_pixels(glyph_data, current_help_x, current_help_y, HELP_CHAR_WIDTH, HELP_CHAR_HEIGHT)
-                    current_help_x += HELP_CHAR_WIDTH + HELP_CHAR_SPACING
-            
-            current_help_y += HELP_CHAR_HEIGHT + HELP_LINE_SPACING
-
-# Initialize column_states (will be properly initialized by full_reset_animation on first game start)
-column_states = []
-for _ in range(current_num_columns): # Initial population based on default current_num_columns
-    new_col_data = {}
-    reset_column_state(new_col_data) # Initialize with random properties
-    column_states.append(new_col_data)
 # --- Main Game Loop ---
 while True:
     # --- Input Handling & Logic ---
@@ -507,30 +520,14 @@ while True:
             # Draw Head Glyph
             head_y_pixel = col_data['head_y']
             head_morph_state = col_data['head_glyph_morph_state']
-            if head_morph_state['target_id'] != -1: # Morphing
-                source_glyph = current_glyphs[head_morph_state['id']]
-                target_glyph = current_glyphs[head_morph_state['target_id']]
-                glyph_to_draw_data = get_interpolated_glyph_frame(
-                    source_glyph, target_glyph, head_morph_state['progress'],
-                    current_glyph_w, current_glyph_h
-                )
-            else: # Not morphing
-                glyph_to_draw_data = current_glyphs[head_morph_state['id']]
+            glyph_to_draw_data = _get_drawing_glyph_data(head_morph_state, current_glyphs, current_glyph_w, current_glyph_h)
             draw_glyph_pixels(glyph_to_draw_data, draw_x, head_y_pixel, current_glyph_w, current_glyph_h, current_dim_pattern)
 
             # Draw Trail Glyphs
             for i in range(col_data['trail_len']):
                 trail_y_pixel = head_y_pixel - ((i + 1) * current_glyph_h)
                 trail_morph_state = col_data['trail_glyph_morph_states'][i]
-                if trail_morph_state['target_id'] != -1: # Morphing
-                    source_glyph = current_glyphs[trail_morph_state['id']]
-                    target_glyph = current_glyphs[trail_morph_state['target_id']]
-                    glyph_to_draw_data = get_interpolated_glyph_frame(
-                        source_glyph, target_glyph, trail_morph_state['progress'],
-                        current_glyph_w, current_glyph_h
-                    )
-                else: # Not morphing
-                    glyph_to_draw_data = current_glyphs[trail_morph_state['id']]
+                glyph_to_draw_data = _get_drawing_glyph_data(trail_morph_state, current_glyphs, current_glyph_w, current_glyph_h)
                 draw_glyph_pixels(glyph_to_draw_data, draw_x, trail_y_pixel, current_glyph_w, current_glyph_h, current_dim_pattern)
 
     thumby.display.update() # Update the physical display
