@@ -183,17 +183,21 @@ GLYPH_MORPH_DURATION_FRAMES = 20 # How many frames the morph animation lasts
 
 
 # --- Column and Display Configuration ---
-COLUMN_SLOT_WIDTH = 5 # Width of each column "slot" to accommodate largest glyphs
-# COLS = thumby.display.width // COLUMN_SLOT_WIDTH # Replaced by dynamic current_num_columns
-MAX_PHYSICAL_COLS = thumby.display.width // COLUMN_SLOT_WIDTH
-MIN_PHYSICAL_COLS = 1
+# COLUMN_SLOT_WIDTH is removed as columns will now overlap.
+# MAX_PHYSICAL_COLS and MIN_PHYSICAL_COLS are replaced by MAX_STREAKS and MIN_STREAKS.
+MAX_STREAKS = 30  # Maximum number of concurrent rain streaks
+MIN_STREAKS = 1   # Minimum number of concurrent rain streaks
+INITIAL_STREAKS = 25 # Default number of streaks to start with (Increased for higher starting density)
 
 
 # --- Depth Configuration ---
 DEPTH_LEVELS = {
-    'foreground': {'speed_min': 1, 'speed_max': 3, 'dim_pattern': 0, 'glyph_set_key': 'large'}, # 0 = solid
-    'midground':  {'speed_min': 3, 'speed_max': 5, 'dim_pattern': 0, 'glyph_set_key': 'medium'},# 0 = solid
-    'background': {'speed_min': 5, 'speed_max': 8, 'dim_pattern': 1, 'glyph_set_key': 'small'}, # 1 = checkerboard
+    # 5 layers for enhanced depth
+    'layer1_farthest': {'speed_min': 9, 'speed_max': 12, 'dim_pattern': 1, 'glyph_set_key': 'small'}, # Slowest, dimmest
+    'layer2_far':      {'speed_min': 7, 'speed_max': 10, 'dim_pattern': 1, 'glyph_set_key': 'small'},
+    'layer3_mid':      {'speed_min': 4, 'speed_max':  7, 'dim_pattern': 0, 'glyph_set_key': 'medium'},# Solid
+    'layer4_near':     {'speed_min': 2, 'speed_max':  5, 'dim_pattern': 0, 'glyph_set_key': 'large'}, # Solid
+    'layer5_nearest':  {'speed_min': 1, 'speed_max':  3, 'dim_pattern': 0, 'glyph_set_key': 'large'}, # Fastest, solid
 }
 DEPTH_TYPES = list(DEPTH_LEVELS.keys())
 
@@ -201,14 +205,16 @@ DEPTH_TYPES = list(DEPTH_LEVELS.keys())
 STATE_TITLE = 0
 STATE_CODEFALL = 1
 
+
 # --- Interactive Control Variables & Constants ---
 is_frozen = False
-GLOBAL_SPEED_ADJUSTMENT = 0
+INITIAL_GLOBAL_SPEED_ADJUSTMENT = 3 # New constant for starting speed boost
+GLOBAL_SPEED_ADJUSTMENT = INITIAL_GLOBAL_SPEED_ADJUSTMENT # Initialized to the new starting speed
 # Max adjustment allows any column's speed threshold to become 1 (fastest)
 MAX_SPEED_ADJUST = max(max(level['speed_min'], level['speed_max']) for level in DEPTH_LEVELS.values()) - 1
 MIN_SPEED_ADJUST = -10 # Allow slowing down significantly (higher threshold values)
 
-current_num_columns = MAX_PHYSICAL_COLS # Start with max columns
+current_num_columns = INITIAL_STREAKS # Start with the defined initial number of streaks
 
 current_game_state = STATE_TITLE
 
@@ -308,6 +314,8 @@ def reset_column_state(col_data_obj):
     col_data_obj['glyph_h'] = glyph_set_info['height']
     col_data_obj['num_glyphs_in_set'] = glyph_set_info['num_glyphs']
 
+    # Assign a random X position for this column streak
+    col_data_obj['draw_x'] = random.randint(0, thumby.display.width - col_data_obj['glyph_w'])
     # Start slightly more off-screen to accommodate varying trail lengths better on initial drop
     col_data_obj['head_y'] = random.randint(-col_data_obj['glyph_h'] * 8, -col_data_obj['glyph_h'] * 2)
     col_data_obj['trail_len'] = random.randint(1, 3)
@@ -321,7 +329,6 @@ def full_reset_animation():
     
     is_frozen = False
     GLOBAL_SPEED_ADJUSTMENT = 0
-    # current_num_columns = MAX_PHYSICAL_COLS # Optionally reset density; current behavior keeps existing density.
 
     column_states = []
     for _ in range(current_num_columns): # Use the current_num_columns
@@ -425,9 +432,9 @@ while True:
             GLOBAL_SPEED_ADJUSTMENT = max(MIN_SPEED_ADJUST, GLOBAL_SPEED_ADJUSTMENT - 1)
         
         if thumby.buttonR.justPressed():
-            current_num_columns = min(MAX_PHYSICAL_COLS, current_num_columns + 1)
+            current_num_columns = min(MAX_STREAKS, current_num_columns + 1)
         if thumby.buttonL.justPressed():
-            current_num_columns = max(MIN_PHYSICAL_COLS, current_num_columns - 1)
+            current_num_columns = max(MIN_STREAKS, current_num_columns - 1)
 
         # --- Adjust column_states list based on current_num_columns ---
         while len(column_states) < current_num_columns:
@@ -493,10 +500,8 @@ while True:
             current_glyph_w = col_data['glyph_w']
             current_glyph_h = col_data['glyph_h']
             current_glyphs = glyph_set_info['glyphs']
-            
-            slot_start_x = col_idx * COLUMN_SLOT_WIDTH
-            padding_x = (COLUMN_SLOT_WIDTH - current_glyph_w) // 2
-            draw_x = slot_start_x + padding_x
+            draw_x = col_data['draw_x'] # Use the stored x-position for the streak
+
             current_dim_pattern = depth_props['dim_pattern']
 
             # Draw Head Glyph
