@@ -54,6 +54,34 @@ This document tracks the major features and improvements implemented in the Thum
 *   **Enhanced Drawing and Reset Logic:**
     *   Drawing functions now use the specific dimensions of each column's glyphs.
     *   Reset logic correctly calculates off-screen positions based on variable glyph heights.
-    *   This significantly enhances the 3D depth illusion by visually scaling glyphs based on their perceived distance.
+*       This significantly enhances the 3D depth illusion by visually scaling glyphs based on their perceived distance.
+
 ---
-*Last Updated: Implementation of variable glyph sizes for depth effect.*
+
+### Interactive Controls & Title Screen (Planned)
+
+*   **Title Screen Implementation:**
+    *   A simple screen displayed at startup.
+    *   Shows the application name (e.g., "Codefall").
+    *   Provides a brief legend for button controls.
+    *   Requires a new game state to differentiate between title and main animation.
+*   **B Button (Reset):**
+    *   Functionality: Resets the entire Codefall display.
+    *   Action: Re-initializes all column states, effectively restarting the animation with new random parameters (depth, speed, glyphs, trail lengths) for each column.
+*   **A Button (Freeze/Unfreeze):**
+    *   Functionality: Pauses or resumes the animation.
+    *   Action: Toggles a "frozen" state. When frozen, column positions and glyphs do not update.
+*   **D-Pad Up (Increase Speed):**
+    *   Functionality: Increases the overall falling speed of glyphs.
+    *   Action: Adjusts a global speed modifier or modifies the base speed thresholds for all depth levels.
+*   **D-Pad Down (Decrease Speed):**
+    *   Functionality: Decreases the overall falling speed of glyphs.
+    *   Action: Adjusts a global speed modifier or modifies the base speed thresholds, ensuring speeds don't become excessively slow or negative.
+*   **D-Pad Left (Decrease Density):**
+    *   Functionality: Reduces the number of active columns (glyphs appear less dense).
+    *   Action: Decreases the `COLS` variable and adjusts the `column_states` list accordingly, down to a minimum number of columns.
+*   **D-Pad Right (Increase Density):**
+    *   Functionality: Increases the number of active columns (glyphs appear denser).
+    *   Action: Increases the `COLS` variable and adjusts the `column_states` list, up to a maximum determined by screen width and `COLUMN_SLOT_WIDTH`.
+---
+*Last Updated: Planning for interactive controls and title screen.*
