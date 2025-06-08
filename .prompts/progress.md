@@ -24,16 +24,15 @@ This document tracks the major features and improvements implemented in the Thum
     *   Introduced three depth levels: `foreground`, `midground`, and `background`.
     *   Each depth level has distinct properties:
         *   `speed_min`, `speed_max`: Defines the range for falling speed.
-        *   `render_skip`: Controls rendering frequency (e.g., `0` for always render, `1` for skip every other frame).
+        *   `draw_probability`: Controls the chance of a glyph being rendered each frame (e.g., `1.0` for always render, `0.33` for a 33% chance). This replaces the previous `render_skip` mechanism.
 *   **Column Depth Integration:**
     *   Each column in `column_states` is now assigned a `depth_type`.
     *   `speed_threshold` is now randomly chosen based on the `speed_min` and `speed_max` of the column's assigned depth.
 *   **Conditional Rendering Logic:**
-    *   Implemented a `render_counter` for each column.
-    *   Glyphs are drawn only if `depth_props['render_skip'] == 0` or if `col_data['render_counter'] % (depth_props['render_skip'] + 1) == 0`.
-    *   This creates the effect of background columns appearing dimmer or less distinct.
+    *   Glyphs for a column are drawn if `random.random() < depth_props['draw_probability']`.
+    *   This creates a more organic, less "strobe-like" effect for background columns, making them appear dimmer or less consistently present.
 *   **Dynamic Reset with Depth:**
-    *   When a column resets, it's assigned a new random `depth_type`, and its `speed_threshold` and `render_counter` are updated accordingly.
+    *   When a column resets, it's assigned a new random `depth_type`, and its `speed_threshold` is updated accordingly.
 *   **Timing:**
     *   Main loop includes `time.sleep(0.01)` for animation pacing.
 
@@ -57,13 +56,13 @@ This document tracks the major features and improvements implemented in the Thum
 *       This significantly enhances the 3D depth illusion by visually scaling glyphs based on their perceived distance.
 
 ---
-
-### Interactive Controls & Title Screen (Planned)
+### Interactive Controls & Title Screen
 
 *   **Title Screen Implementation:**
-    *   A simple screen displayed at startup.
-    *   Shows the application name (e.g., "Codefall").
-    *   Provides a brief legend for button controls.
+    *   **Stylish Design:** Features an animated "CODEFALL" title where letters "rain" into place sequentially.
+    *   **Custom Pixel Font:** The "CODEFALL" title uses a custom-designed 5x7 pixel font for a unique look.
+    *   **Background Animation:** Subtle, slow-falling small glyphs are rendered in the background of the title screen, enhancing the thematic connection to the main application.
+*   **Help Text:** Provides a clear legend for button controls using a compact custom pixel font (e.g., 3x5), appearing after the title animation completes. This ensures a consistent visual style across all title screen text.
     *   Requires a new game state to differentiate between title and main animation.
 *   **B Button (Reset):**
     *   Functionality: Resets the entire Codefall display.
@@ -84,4 +83,14 @@ This document tracks the major features and improvements implemented in the Thum
     *   Functionality: Increases the number of active columns (glyphs appear denser).
     *   Action: Increases the `COLS` variable and adjusts the `column_states` list, up to a maximum determined by screen width and `COLUMN_SLOT_WIDTH`.
 ---
-*Last Updated: Planning for interactive controls and title screen.*
+### Visual Enhancements - Glyph Morphing
+
+*   **Random Morphing:** Individual glyphs in the falling columns can now randomly decide to morph into another glyph from their current set.
+    *   Controlled by `GLYPH_MORPH_PROBABILITY`.
+*   **Transition Effect:** The morph is not instantaneous. It occurs over `GLYPH_MORPH_DURATION_FRAMES`.
+    *   During the transition, the glyph flickers between its original and target forms, with the target form becoming more prevalent as the morph progresses.
+    *   This is achieved by rendering interpolated glyph frames using `get_interpolated_glyph_frame`. Pixels randomly switch from the source glyph to the target glyph based on the morph progress, creating a "digital dissolve" effect.
+*   **State Management:** Each glyph (head and trail) now maintains its own morphing state (`id`, `target_id`, `progress`) within the `column_states`.
+
+---
+*Last Updated: Implemented glyph morphing feature and updated title screen animation.*
