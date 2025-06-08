@@ -24,13 +24,13 @@ This document tracks the major features and improvements implemented in the Thum
     *   Introduced three depth levels: `foreground`, `midground`, and `background`.
     *   Each depth level has distinct properties:
         *   `speed_min`, `speed_max`: Defines the range for falling speed.
-        *   `draw_probability`: Controls the chance of a glyph being rendered each frame (e.g., `1.0` for always render, `0.33` for a 33% chance). This replaces the previous `render_skip` mechanism.
+        *   `dim_pattern`: Controls how glyphs are rendered (e.g., `0` for solid, `1` for a checkerboard pattern to appear dimmer). This replaces the `draw_probability` mechanism.
 *   **Column Depth Integration:**
     *   Each column in `column_states` is now assigned a `depth_type`.
     *   `speed_threshold` is now randomly chosen based on the `speed_min` and `speed_max` of the column's assigned depth.
 *   **Conditional Rendering Logic:**
-    *   Glyphs for a column are drawn if `random.random() < depth_props['draw_probability']`.
-    *   This creates a more organic, less "strobe-like" effect for background columns, making them appear dimmer or less consistently present.
+    *   The `draw_glyph_pixels` function now accepts a `dim_pattern`.
+    *   Background glyphs are rendered with a dimming pattern (e.g., checkerboard), making them appear consistently thinner and less distinct, avoiding a flickering effect.
 *   **Dynamic Reset with Depth:**
     *   When a column resets, it's assigned a new random `depth_type`, and its `speed_threshold` is updated accordingly.
 *   **Timing:**

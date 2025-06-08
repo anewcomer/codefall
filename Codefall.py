@@ -14,7 +14,6 @@ import time
 # Each glyph is a list of bytes, representing rows of pixels.
 # The most significant 4 bits of each byte are used for the 4-pixel width.
 GLYPHS = [
-    # Original 16 Glyphs (some modified)
     bytearray([0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000]),
     bytearray([0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000]),
     bytearray([0b11100000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b11100000, 0b00000000]),
@@ -192,9 +191,9 @@ MIN_PHYSICAL_COLS = 1
 
 # --- Depth Configuration ---
 DEPTH_LEVELS = {
-    'foreground': {'speed_min': 1, 'speed_max': 3, 'draw_probability': 1.0, 'glyph_set_key': 'large'},
-    'midground':  {'speed_min': 3, 'speed_max': 5, 'draw_probability': 1.0, 'glyph_set_key': 'medium'},
-    'background': {'speed_min': 5, 'speed_max': 8, 'draw_probability': 0.33, 'glyph_set_key': 'small'}, # Approx. 1/3 chance to draw
+    'foreground': {'speed_min': 1, 'speed_max': 3, 'dim_pattern': 0, 'glyph_set_key': 'large'}, # 0 = solid
+    'midground':  {'speed_min': 3, 'speed_max': 5, 'dim_pattern': 0, 'glyph_set_key': 'medium'},# 0 = solid
+    'background': {'speed_min': 5, 'speed_max': 8, 'dim_pattern': 1, 'glyph_set_key': 'small'}, # 1 = checkerboard
 }
 DEPTH_TYPES = list(DEPTH_LEVELS.keys())
 
@@ -218,7 +217,7 @@ current_game_state = STATE_TITLE
 # Assumes thumby.display.fill(0) has been called prior to any calls in a frame.
 # Assumes glyph_row_data has the glyph pixels in the N most significant bits for an N-wide glyph.
 # Assumes color is 1 (ON), drawing on a black background cleared by fill(0).
-def draw_glyph_pixels(glyph_data, draw_x, draw_y, glyph_w, glyph_h):
+def draw_glyph_pixels(glyph_data, draw_x, draw_y, glyph_w, glyph_h, dim_pattern=0):
     # Cache display dimensions
     disp_width = thumby.display.width
     disp_height = thumby.display.height
@@ -253,6 +252,10 @@ def draw_glyph_pixels(glyph_data, draw_x, draw_y, glyph_w, glyph_h):
 
             # Check if the pixel in the glyph definition (most significant 4 bits) is set
             if (glyph_row_data >> (7 - c_offset)) & 0x01:
+                # Apply dimming pattern if active
+                if dim_pattern == 1: # Checkerboard
+                    if (r_offset + c_offset) % 2 != 0: # Skip this pixel for checkerboard
+                        continue
                 buffer_idx = screen_x + page_offset
                 buffer[buffer_idx] |= bit_to_set
 
@@ -490,40 +493,40 @@ while True:
             current_glyph_w = col_data['glyph_w']
             current_glyph_h = col_data['glyph_h']
             current_glyphs = glyph_set_info['glyphs']
+            
+            slot_start_x = col_idx * COLUMN_SLOT_WIDTH
+            padding_x = (COLUMN_SLOT_WIDTH - current_glyph_w) // 2
+            draw_x = slot_start_x + padding_x
+            current_dim_pattern = depth_props['dim_pattern']
 
-            if random.random() < depth_props['draw_probability']:
-                slot_start_x = col_idx * COLUMN_SLOT_WIDTH
-                padding_x = (COLUMN_SLOT_WIDTH - current_glyph_w) // 2
-                draw_x = slot_start_x + padding_x
+            # Draw Head Glyph
+            head_y_pixel = col_data['head_y']
+            head_morph_state = col_data['head_glyph_morph_state']
+            if head_morph_state['target_id'] != -1: # Morphing
+                source_glyph = current_glyphs[head_morph_state['id']]
+                target_glyph = current_glyphs[head_morph_state['target_id']]
+                glyph_to_draw_data = get_interpolated_glyph_frame(
+                    source_glyph, target_glyph, head_morph_state['progress'],
+                    current_glyph_w, current_glyph_h
+                )
+            else: # Not morphing
+                glyph_to_draw_data = current_glyphs[head_morph_state['id']]
+            draw_glyph_pixels(glyph_to_draw_data, draw_x, head_y_pixel, current_glyph_w, current_glyph_h, current_dim_pattern)
 
-                # Draw Head Glyph
-                head_y_pixel = col_data['head_y']
-                head_morph_state = col_data['head_glyph_morph_state']
-                if head_morph_state['target_id'] != -1: # Morphing
-                    source_glyph = current_glyphs[head_morph_state['id']]
-                    target_glyph = current_glyphs[head_morph_state['target_id']]
+            # Draw Trail Glyphs
+            for i in range(col_data['trail_len']):
+                trail_y_pixel = head_y_pixel - ((i + 1) * current_glyph_h)
+                trail_morph_state = col_data['trail_glyph_morph_states'][i]
+                if trail_morph_state['target_id'] != -1: # Morphing
+                    source_glyph = current_glyphs[trail_morph_state['id']]
+                    target_glyph = current_glyphs[trail_morph_state['target_id']]
                     glyph_to_draw_data = get_interpolated_glyph_frame(
-                        source_glyph, target_glyph, head_morph_state['progress'],
+                        source_glyph, target_glyph, trail_morph_state['progress'],
                         current_glyph_w, current_glyph_h
                     )
                 else: # Not morphing
-                    glyph_to_draw_data = current_glyphs[head_morph_state['id']]
-                draw_glyph_pixels(glyph_to_draw_data, draw_x, head_y_pixel, current_glyph_w, current_glyph_h)
-
-                # Draw Trail Glyphs
-                for i in range(col_data['trail_len']):
-                    trail_y_pixel = head_y_pixel - ((i + 1) * current_glyph_h)
-                    trail_morph_state = col_data['trail_glyph_morph_states'][i]
-                    if trail_morph_state['target_id'] != -1: # Morphing
-                        source_glyph = current_glyphs[trail_morph_state['id']]
-                        target_glyph = current_glyphs[trail_morph_state['target_id']]
-                        glyph_to_draw_data = get_interpolated_glyph_frame(
-                            source_glyph, target_glyph, trail_morph_state['progress'],
-                            current_glyph_w, current_glyph_h
-                        )
-                    else: # Not morphing
-                        glyph_to_draw_data = current_glyphs[trail_morph_state['id']]
-                    draw_glyph_pixels(glyph_to_draw_data, draw_x, trail_y_pixel, current_glyph_w, current_glyph_h)
+                    glyph_to_draw_data = current_glyphs[trail_morph_state['id']]
+                draw_glyph_pixels(glyph_to_draw_data, draw_x, trail_y_pixel, current_glyph_w, current_glyph_h, current_dim_pattern)
 
     thumby.display.update() # Update the physical display
 
