@@ -61,7 +61,7 @@ This document tracks the major features and improvements implemented in the Thum
 *   **Title Screen Implementation:**
     *   **Stylish Design:** Features an animated "CODEFALL" title where letters "rain" into place sequentially.
     *   **Custom Pixel Font:** The "CODEFALL" title uses a custom-designed 5x7 pixel font for a unique look.
-    *   **Background Animation:** Subtle, slow-falling small glyphs are rendered in the background of the title screen, enhancing the thematic connection to the main application.
+    *   The title screen focuses solely on the animated title and help text for clarity.
 *   **Help Text:** Provides a clear legend for button controls using a compact custom pixel font (e.g., 3x5), appearing after the title animation completes. This ensures a consistent visual style across all title screen text.
     *   Requires a new game state to differentiate between title and main animation.
 *   **B Button (Reset):**

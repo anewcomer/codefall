@@ -178,11 +178,6 @@ title_anim_next_letter_to_start_idx = 0 # Index of the next letter that should b
 title_anim_stagger_counter = 0 # Counter for staggering letter starts
 title_anim_is_complete = False
 
-# Title screen background glyphs
-NUM_TITLE_BG_COLUMNS = 3
-TITLE_BG_GLYPH_SPEED = 10 # Higher is slower (frames per pixel move)
-title_bg_columns_data = []
-
 # --- Morphing Constants ---
 GLYPH_MORPH_PROBABILITY = 0.01  # Further Increased: Chance per glyph per frame to start morphing
 GLYPH_MORPH_DURATION_FRAMES = 20 # How many frames the morph animation lasts
@@ -333,43 +328,16 @@ def full_reset_animation():
 
 def initialize_title_screen_state():
     global title_anim_letter_ys, title_anim_current_letter_idx, title_anim_is_complete
-    global title_bg_columns_data, title_anim_next_letter_to_start_idx, title_anim_stagger_counter
+    global title_anim_next_letter_to_start_idx, title_anim_stagger_counter
 
     title_anim_letter_ys = [TITLE_ANIM_START_Y] * len(APP_TITLE_STRING)
-    # title_anim_current_letter_idx = 0 # Replaced
     title_anim_is_complete = False
     title_anim_next_letter_to_start_idx = 0
     title_anim_stagger_counter = 0
-    
-    title_bg_columns_data = []
-    small_glyph_set = GLYPH_SETS['small']
-    for i in range(NUM_TITLE_BG_COLUMNS):
-        title_bg_columns_data.append({
-            'x': random.randint(0, MAX_PHYSICAL_COLS -1) * COLUMN_SLOT_WIDTH + (COLUMN_SLOT_WIDTH - small_glyph_set['width']) // 2,
-            'y': random.randint(-thumby.display.height, 0),
-            'glyph_idx': random.randint(0, small_glyph_set['num_glyphs'] - 1),
-            'speed_counter': random.randint(0, TITLE_BG_GLYPH_SPEED -1) # Stagger initial movement
-        })
 
 def draw_title_screen():
     global title_anim_letter_ys, title_anim_current_letter_idx, title_anim_is_complete
-    global title_bg_columns_data, title_anim_next_letter_to_start_idx, title_anim_stagger_counter
-
-    # --- Update and Draw Background Glyphs ---
-    small_glyph_set = GLYPH_SETS['small']
-    for col_data in title_bg_columns_data:
-        col_data['speed_counter'] += 1
-        if col_data['speed_counter'] >= TITLE_BG_GLYPH_SPEED:
-            col_data['y'] += 1
-            col_data['speed_counter'] = 0
-        
-        if col_data['y'] > thumby.display.height:
-            col_data['y'] = random.randint(-small_glyph_set['height'] * 5, -small_glyph_set['height'])
-            col_data['x'] = random.randint(0, MAX_PHYSICAL_COLS -1) * COLUMN_SLOT_WIDTH + (COLUMN_SLOT_WIDTH - small_glyph_set['width']) // 2
-            col_data['glyph_idx'] = random.randint(0, small_glyph_set['num_glyphs'] - 1)
-
-        glyph_to_draw = small_glyph_set['glyphs'][col_data['glyph_idx']]
-        draw_glyph_pixels(glyph_to_draw, col_data['x'], col_data['y'], small_glyph_set['width'], small_glyph_set['height'])
+    global title_anim_next_letter_to_start_idx, title_anim_stagger_counter
 
     # --- Animate Title Letters ---
     all_letters_landed_check = True # Assume all are landed until proven otherwise
@@ -508,7 +476,7 @@ while True:
     # --- Drawing ---
     thumby.display.fill(0) # Clear the entire display to black each frame
 
-    if current_game_state == STATE_TITLE and not title_bg_columns_data: # First time entering title state
+    if current_game_state == STATE_TITLE and not title_anim_letter_ys: # Check if title anim needs init
         initialize_title_screen_state()
 
 
