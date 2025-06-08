@@ -16,33 +16,32 @@ import time
 GLYPHS = [
     bytearray([0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000]),
     bytearray([0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01000000]),
-    bytearray([0b11100000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b11100000, 0b00000000]),
-    bytearray([0b11100000, 0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b00100000, 0b00100000, 0b00000000]),
-    bytearray([0b10000000, 0b10000000, 0b11100000, 0b01000000, 0b01000000, 0b01000000, 0b00000000, 0b00000000]),
+    bytearray([0b11110000, 0b10010000, 0b10100000, 0b11000000, 0b01100000, 0b00110000, 0b11110000, 0b00000000]), # Abstract square with diagonal
+    bytearray([0b11000000, 0b01000000, 0b01000000, 0b01100000, 0b00100000, 0b00100000, 0b00100000, 0b00000000]), # Abstract "hook"
+    bytearray([0b11110000, 0b00000000, 0b11110000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]), # Katakana "Ni" (ニ) - like
     bytearray([0b01000000, 0b01000000, 0b11100000, 0b01000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]),
     bytearray([0b10100000, 0b01000000, 0b10100000, 0b01000000, 0b10100000, 0b00000000, 0b11110000, 0b00000000]),
     bytearray([0b00010000, 0b00100000, 0b01000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b00000000]),
     bytearray([0b10000000, 0b01000000, 0b00100000, 0b00010000, 0b10000000, 0b01000000, 0b00100000, 0b00010000]),
-    bytearray([0b01100000, 0b10010000, 0b10010000, 0b01100000, 0b10010000, 0b10010000, 0b01100000, 0b00000000]),
-    bytearray([0b11100000, 0b10100000, 0b10100000, 0b11100000, 0b10100000, 0b10100000, 0b11100000, 0b00000000]),
-    bytearray([0b00000000, 0b11110000, 0b10010000, 0b10010000, 0b10010000, 0b11110000, 0b00000000, 0b00000000]),
+    bytearray([0b10100000, 0b10100000, 0b11100000, 0b01000000, 0b11100000, 0b10100000, 0b10100000, 0b00000000]), # Abstract "trident"
+    bytearray([0b11000000, 0b01100000, 0b10100000, 0b00100000, 0b00100000, 0b00010000, 0b00010000, 0b00000000]), # Katakana "Mu" (ム) - like
     bytearray([0b00100000, 0b01100000, 0b10100000, 0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b00000000]),
     bytearray([0b11100000, 0b00100000, 0b00100000, 0b11100000, 0b00100000, 0b00100000, 0b00100000, 0b00000000]),
-    bytearray([0b11110000, 0b10000000, 0b11110000, 0b00010000, 0b00010000, 0b00010000, 0b11110000, 0b00000000]),
+    bytearray([0b00010000, 0b00010000, 0b00100000, 0b00100000, 0b01000000, 0b01000000, 0b10000000, 0b00000000]), # Katakana "So" (ソ) - like
     bytearray([0b01100000, 0b10010000, 0b00100000, 0b01000000, 0b10010000, 0b10010000, 0b01100000, 0b00000000]),
-    bytearray([0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b11110000, 0b01100000, 0b00100000, 0b00000000]),
-    bytearray([0b00100000, 0b01100000, 0b11110000, 0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b00000000]),
-    bytearray([0b00000000, 0b00100000, 0b00100000, 0b11110000, 0b00100000, 0b00100000, 0b00000000, 0b00000000]),
+    bytearray([0b11100000, 0b10000000, 0b10000000, 0b10010000, 0b10100000, 0b11000000, 0b00000000, 0b00000000]), # Katakana "Ru" (ル) - like
+    bytearray([0b01000000, 0b01000000, 0b11110000, 0b01000000, 0b01000000, 0b00100000, 0b00100000, 0b00000000]), # Katakana "Chi" (チ) - like
+    bytearray([0b00100000, 0b00100000, 0b00100000, 0b10100000, 0b10100000, 0b10100000, 0b01100000, 0b00000000]), # Katakana "U" (ウ) - like
     bytearray([0b00000000, 0b00000000, 0b00000000, 0b11110000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]),
     bytearray([0b00000000, 0b01100000, 0b01100000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]),
     bytearray([0b10100000, 0b01010000, 0b10100000, 0b01010000, 0b10100000, 0b01010000, 0b10100000, 0b01010000]),
     bytearray([0b10000000, 0b10000000, 0b01100000, 0b00100000, 0b00100000, 0b00000000, 0b00000000, 0b00000000]),
     bytearray([0b01100000, 0b10000000, 0b00100000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]),
     bytearray([0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b01100000, 0b00000000]),
-    bytearray([0b11100000, 0b10100000, 0b10100000, 0b10100000, 0b10100000, 0b10100000, 0b11100000, 0b00000000]),
-    bytearray([0b10000000, 0b10000000, 0b11100000, 0b10000000, 0b10000000, 0b10000000, 0b11100000, 0b00000000]),
+    bytearray([0b10100000, 0b10100000, 0b01000000, 0b01000000, 0b01000000, 0b10100000, 0b10100000, 0b00000000]), # Abstract "Psi" (Ψ) - like
+    bytearray([0b00100000, 0b01000000, 0b10000000, 0b01000000, 0b00100000, 0b00000000, 0b00000000, 0b00000000]), # Katakana "Fu" (フ) - like
     bytearray([0b10000000, 0b10000000, 0b01100000, 0b10000000, 0b10000000, 0b00000000, 0b00000000, 0b00000000]),
-    bytearray([0b10000000, 0b10000000, 0b11100000, 0b00100000, 0b00100000, 0b00100000, 0b00000000, 0b00000000]),
+    bytearray([0b00000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10010000, 0b01100000, 0b00000000]), # Katakana "Re" (レ) - like
     bytearray([0b01100000, 0b10010000, 0b00010000, 0b00100000, 0b00100000, 0b00000000, 0b00100000, 0b00000000]),
     bytearray([0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b00100000, 0b00000000, 0b00100000, 0b00000000]),
     bytearray([0b00000000, 0b01100000, 0b01100000, 0b00000000, 0b10010000, 0b01100000, 0b00000000, 0b00000000]),
@@ -51,22 +50,22 @@ GLYPHS = [
 # --- Small Glyphs (3x6) - Abstract & Katakana-inspired ---
 # Most significant 3 bits used.
 GLYPHS_SMALL = [
-    bytearray([0b11100000, 0b10000000, 0b10000000, 0b10000000, 0b11100000, 0b00000000]), # Small Katakana Ko
+    bytearray([0b01000000, 0b10000000, 0b01000000, 0b00100000, 0b00000000, 0b00000000]), # Katakana "Ku" (ク) - like
     bytearray([0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b10000000]), # Small |-like
     bytearray([0b00100000, 0b01000000, 0b10000000, 0b01000000, 0b00100000, 0b00000000]), # Small Katakana No (variant)
-    bytearray([0b01000000, 0b11100000, 0b01000000, 0b00000000, 0b00000000, 0b00000000]), # Small Katakana To
-    bytearray([0b11100000, 0b00100000, 0b00100000, 0b01000000, 0b01000000, 0b00000000]), # Small 7-like
+    bytearray([0b10000000, 0b11000000, 0b01000000, 0b01100000, 0b00100000, 0b00000000]), # Abstract "Stairs"
+    bytearray([0b11000000, 0b00100000, 0b01000000, 0b10000000, 0b00100000, 0b00000000]), # Katakana "Su" (ス) - like
     bytearray([0b10100000, 0b01000000, 0b01000000, 0b10100000, 0b00000000, 0b00000000]), # Small X-like
     bytearray([0b01000000, 0b11100000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]), # Small Triangle-like
-    bytearray([0b11100000, 0b00100000, 0b01000000, 0b10000000, 0b11100000, 0b00000000]), # Small Z-like
+    bytearray([0b00100000, 0b00100000, 0b00100000, 0b10000000, 0b01000000, 0b00000000]), # Katakana "N" (ン) - like
 ]
 
 # --- Large Glyphs (5x10) - Abstract & Katakana-inspired ---
 # Most significant 5 bits used.
 GLYPHS_LARGE = [
-    bytearray([0b00100000, 0b01110000, 0b10001000, 0b10001000, 0b11111000, 0b10001000, 0b10001000, 0b00000000, 0b00000000, 0b00000000]), # Large Katakana A (modified)
-    bytearray([0b01000000, 0b01000000, 0b11111000, 0b01000000, 0b01000000, 0b10010000, 0b10010000, 0b00000000, 0b00000000, 0b00000000]), # Large Katakana Ta
-    bytearray([0b11100000, 0b11100000, 0b00100000, 0b00100000, 0b00010000, 0b00010000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]), # Large Katakana Mi
+    bytearray([0b11100000, 0b11100000, 0b00000000, 0b11111000, 0b00000000, 0b00100000, 0b01000000, 0b10000000, 0b00000000, 0b00000000]), # Katakana "Ki" (キ) - like
+    bytearray([0b11111000, 0b00100000, 0b00100000, 0b00100000, 0b10001000, 0b01010000, 0b00100000, 0b00000000, 0b00000000, 0b00000000]), # Katakana "Na" (ナ) - like
+    bytearray([0b01000000, 0b01000000, 0b01000000, 0b01000000, 0b01111000, 0b11000000, 0b01000000, 0b00000000, 0b00000000, 0b00000000]), # Katakana "Wa" (ワ) - like
     bytearray([0b11111000, 0b00100000, 0b00100000, 0b01110000, 0b10100000, 0b10100000, 0b10100000, 0b10100000, 0b10100000, 0b00000000]), # Large Abstract
     bytearray([0b11111000, 0b01010000, 0b01010000, 0b01010000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]), # Large Pi-like
     bytearray([0b11111000, 0b10000000, 0b10000000, 0b01110000, 0b00001000, 0b00001000, 0b11111000, 0b00000000, 0b00000000, 0b00000000]), # Large Sigma-like
@@ -274,21 +273,38 @@ def draw_glyph_pixels(glyph_data, draw_x, draw_y, glyph_w, glyph_h, dim_level=0)
 # --- Glyph Morphing Interpolation Function ---
 def get_interpolated_glyph_frame(source_glyph_data, target_glyph_data, progress, glyph_w, glyph_h):
     interpolated_data = bytearray(glyph_h) # Initialize with zeros (all pixels off)
-    
+
     # Ensure progress is clamped between 0.0 and 1.0
     clamped_progress = max(0.0, min(1.0, progress))
+
+    # Total number of pixels in the glyph
+    total_pixels = glyph_w * glyph_h
+    if total_pixels == 0: # Avoid division by zero or issues with empty glyphs
+        return interpolated_data
+
+    # Number of pixels that should have transitioned to the target state
+    # based on progress. This creates a deterministic "wipe" effect.
+    pixels_to_reflect_target = int(clamped_progress * total_pixels)
 
     for r in range(glyph_h):
         source_row_byte = source_glyph_data[r]
         target_row_byte = target_glyph_data[r]
         interpolated_row_byte = 0
         for c in range(glyph_w):
-            # Determine if this pixel should come from source or target based on progress
-            pixel_is_target = (random.random() < clamped_progress)
-            
             source_pixel_on = (source_row_byte >> (7 - c)) & 0x01
             target_pixel_on = (target_row_byte >> (7 - c)) & 0x01
-            chosen_pixel_on = target_pixel_on if pixel_is_target else source_pixel_on
+
+            # Determine current pixel's linear index (0 to total_pixels - 1)
+            pixel_linear_index = r * glyph_w + c
+
+            # If this pixel's index is less than the number of pixels that should
+            # have transitioned, it takes its state from the target glyph.
+            # Otherwise, it remains as the source glyph.
+            if pixel_linear_index < pixels_to_reflect_target:
+                chosen_pixel_on = target_pixel_on
+            else:
+                chosen_pixel_on = source_pixel_on
+
             if chosen_pixel_on:
                 interpolated_row_byte |= (1 << (7 - c))
         interpolated_data[r] = interpolated_row_byte
@@ -480,28 +496,28 @@ while True:
                     if top_of_topmost_glyph_y >= thumby.display.height:
                         reset_column_state(col_data) # Reset with new random properties
                 
-                # --- Update Morphing State for Glyphs in this Column (if not frozen) ---
+                # --- Update Morphing State for Glyphs in this Column ---
                 # This logic is per column, so it's inside the column loop
-                if not is_frozen: # Though this outer 'if not is_frozen' already covers it
-                    glyph_states_to_update = [col_data['head_glyph_morph_state']] + col_data['trail_glyph_morph_states']
-                    num_glyphs_in_set = col_data['num_glyphs_in_set']
+                # This entire block is already conditional on `not is_frozen` from the outer check.
+                glyph_states_to_update = [col_data['head_glyph_morph_state']] + col_data['trail_glyph_morph_states']
+                num_glyphs_in_set = col_data['num_glyphs_in_set']
 
-                    for glyph_state in glyph_states_to_update:
-                        if glyph_state['target_id'] != -1: # Currently morphing
-                            glyph_state['progress'] += 1.0 / GLYPH_MORPH_DURATION_FRAMES
-                            if glyph_state['progress'] >= 1.0:
-                                glyph_state['id'] = glyph_state['target_id']
-                                glyph_state['target_id'] = -1
-                                glyph_state['progress'] = 0.0
-                        else: # Not morphing, check if should start
-                            if random.random() < GLYPH_MORPH_PROBABILITY:
+                for glyph_state in glyph_states_to_update:
+                    if glyph_state['target_id'] != -1: # Currently morphing
+                        glyph_state['progress'] += 1.0 / GLYPH_MORPH_DURATION_FRAMES
+                        if glyph_state['progress'] >= 1.0:
+                            glyph_state['id'] = glyph_state['target_id']
+                            glyph_state['target_id'] = -1
+                            glyph_state['progress'] = 0.0
+                    else: # Not morphing, check if should start
+                        if random.random() < GLYPH_MORPH_PROBABILITY:
+                            new_target_id = random.randint(0, num_glyphs_in_set - 1)
+                            # Ensure new target is different from current
+                            while new_target_id == glyph_state['id'] and num_glyphs_in_set > 1:
                                 new_target_id = random.randint(0, num_glyphs_in_set - 1)
-                                # Ensure new target is different from current
-                                while new_target_id == glyph_state['id'] and num_glyphs_in_set > 1:
-                                    new_target_id = random.randint(0, num_glyphs_in_set - 1)
-                                if new_target_id != glyph_state['id'] or num_glyphs_in_set == 1: # Allow morph to self if only 1 glyph
-                                    glyph_state['target_id'] = new_target_id
-                                    glyph_state['progress'] = 0.0
+                            if new_target_id != glyph_state['id'] or num_glyphs_in_set == 1: # Allow morph to self if only 1 glyph
+                                glyph_state['target_id'] = new_target_id
+                                glyph_state['progress'] = 0.0
 
     # --- Drawing ---
     thumby.display.fill(0) # Clear the entire display to black each frame
