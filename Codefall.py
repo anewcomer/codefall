@@ -178,7 +178,7 @@ title_anim_stagger_counter = 0 # Counter for staggering letter starts
 title_anim_is_complete = False
 
 # --- Morphing Constants ---
-GLYPH_MORPH_PROBABILITY = 0.01  # Further Increased: Chance per glyph per frame to start morphing
+GLYPH_MORPH_PROBABILITY = 0.05  # Significantly Increased: Chance per glyph per frame to start morphing
 GLYPH_MORPH_DURATION_FRAMES = 20 # How many frames the morph animation lasts
 
 
@@ -190,14 +190,17 @@ MIN_STREAKS = 1   # Minimum number of concurrent rain streaks
 INITIAL_STREAKS = 25 # Default number of streaks to start with (Increased for higher starting density)
 
 
+# --- Dimming Configuration ---
+MAX_DIM_LEVEL = 2 # Maximum dimming level for trail fading (0=solid, 1=1/2, 2=1/3 pixels)
+
 # --- Depth Configuration ---
 DEPTH_LEVELS = {
     # 5 layers for enhanced depth
-    'layer1_farthest': {'speed_min': 16, 'speed_max': 22, 'dim_pattern': 1, 'glyph_set_key': 'small'}, # Slowest, wider range
-    'layer2_far':      {'speed_min': 11, 'speed_max': 17, 'dim_pattern': 1, 'glyph_set_key': 'small'}, # Slower, wider range
-    'layer3_mid':      {'speed_min': 6,  'speed_max': 12, 'dim_pattern': 0, 'glyph_set_key': 'medium'},# Wider range
-    'layer4_near':     {'speed_min': 3,  'speed_max': 7,  'dim_pattern': 0, 'glyph_set_key': 'large'}, # Wider range
-    'layer5_nearest':  {'speed_min': 1,  'speed_max': 4,  'dim_pattern': 0, 'glyph_set_key': 'large'}, # Fastest, slightly wider range
+    'layer1_farthest': {'speed_min': 16, 'speed_max': 22, 'base_dim_level': 1, 'glyph_set_key': 'small'}, # Slowest, wider range
+    'layer2_far':      {'speed_min': 11, 'speed_max': 17, 'base_dim_level': 1, 'glyph_set_key': 'small'}, # Slower, wider range
+    'layer3_mid':      {'speed_min': 6,  'speed_max': 12, 'base_dim_level': 0, 'glyph_set_key': 'medium'},# Wider range
+    'layer4_near':     {'speed_min': 3,  'speed_max': 7,  'base_dim_level': 0, 'glyph_set_key': 'large'}, # Wider range
+    'layer5_nearest':  {'speed_min': 1,  'speed_max': 4,  'base_dim_level': 0, 'glyph_set_key': 'large'}, # Fastest, slightly wider range
 }
 DEPTH_TYPES = list(DEPTH_LEVELS.keys())
 
@@ -223,7 +226,7 @@ current_game_state = STATE_TITLE
 # Assumes thumby.display.fill(0) has been called prior to any calls in a frame.
 # Assumes glyph_row_data has the glyph pixels in the N most significant bits for an N-wide glyph.
 # Assumes color is 1 (ON), drawing on a black background cleared by fill(0).
-def draw_glyph_pixels(glyph_data, draw_x, draw_y, glyph_w, glyph_h, dim_pattern=0):
+def draw_glyph_pixels(glyph_data, draw_x, draw_y, glyph_w, glyph_h, dim_level=0):
     # Cache display dimensions
     disp_width = thumby.display.width
     disp_height = thumby.display.height
@@ -258,9 +261,12 @@ def draw_glyph_pixels(glyph_data, draw_x, draw_y, glyph_w, glyph_h, dim_pattern=
 
             # Check if the pixel in the glyph definition (most significant 4 bits) is set
             if (glyph_row_data >> (7 - c_offset)) & 0x01:
-                # Apply dimming pattern if active
-                if dim_pattern == 1: # Checkerboard
-                    if (r_offset + c_offset) % 2 != 0: # Skip this pixel for checkerboard
+                # Apply dimming if dim_level > 0
+                # dim_level = 0: solid (no skip)
+                # dim_level = 1: skip if (r+c)%(1+1) != 0 -> (r+c)%2 != 0 (draws ~1/2 pixels)
+                # dim_level = N: skip if (r+c)%(N+1) != 0 (draws ~1/(N+1) pixels)
+                if dim_level > 0:
+                    if (r_offset + c_offset) % (dim_level + 1) != 0:
                         continue
                 buffer_idx = screen_x + page_offset
                 buffer[buffer_idx] |= bit_to_set
@@ -326,6 +332,7 @@ def reset_column_state(col_data_obj):
     col_data_obj['glyph_w'] = glyph_set_info['width']
     col_data_obj['glyph_h'] = glyph_set_info['height']
     col_data_obj['num_glyphs_in_set'] = glyph_set_info['num_glyphs']
+    col_data_obj['base_dim_level'] = depth_props['base_dim_level']
 
     # Assign a random X position for this column streak
     col_data_obj['draw_x'] = random.randint(0, thumby.display.width - col_data_obj['glyph_w'])
@@ -514,21 +521,30 @@ while True:
             current_glyph_h = col_data['glyph_h']
             current_glyphs = glyph_set_info['glyphs']
             draw_x = col_data['draw_x'] # Use the stored x-position for the streak
-
-            current_dim_pattern = depth_props['dim_pattern']
+            
+            # Base dim level for this column (used for head, and as base for trail)
+            # Note: depth_props could be re-fetched here, or base_dim_level stored in col_data.
+            # We stored it in col_data during reset_column_state for efficiency.
+            column_base_dim_level = col_data['base_dim_level']
 
             # Draw Head Glyph
             head_y_pixel = col_data['head_y']
             head_morph_state = col_data['head_glyph_morph_state']
             glyph_to_draw_data = _get_drawing_glyph_data(head_morph_state, current_glyphs, current_glyph_w, current_glyph_h)
-            draw_glyph_pixels(glyph_to_draw_data, draw_x, head_y_pixel, current_glyph_w, current_glyph_h, current_dim_pattern)
+            draw_glyph_pixels(glyph_to_draw_data, draw_x, head_y_pixel, current_glyph_w, current_glyph_h, column_base_dim_level)
 
             # Draw Trail Glyphs
             for i in range(col_data['trail_len']):
                 trail_y_pixel = head_y_pixel - ((i + 1) * current_glyph_h)
                 trail_morph_state = col_data['trail_glyph_morph_states'][i]
+                
+                if i == 0: # First trail glyph uses the same base dimming as the head
+                    current_trail_dim_level = column_base_dim_level
+                else: # Subsequent trail glyphs start fading
+                    # Dimming increases every two glyphs (from the second trail glyph onwards)
+                    current_trail_dim_level = min(MAX_DIM_LEVEL, column_base_dim_level + (((i-1) // 2) + 1))
                 glyph_to_draw_data = _get_drawing_glyph_data(trail_morph_state, current_glyphs, current_glyph_w, current_glyph_h)
-                draw_glyph_pixels(glyph_to_draw_data, draw_x, trail_y_pixel, current_glyph_w, current_glyph_h, current_dim_pattern)
+                draw_glyph_pixels(glyph_to_draw_data, draw_x, trail_y_pixel, current_glyph_w, current_glyph_h, current_trail_dim_level)
 
     thumby.display.update() # Update the physical display
 

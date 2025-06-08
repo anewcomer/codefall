@@ -63,7 +63,7 @@ This document outlines the planned features and development stages for Thumby Co
     *   *To Do (Option 2):* Allow the "head" glyph of a column to be *always* visually distinct (e.g., brighter, or a specific "leader" glyph beyond current morphing).
 *   **Trail Effects:**
     *   **Implemented:** Dynamic trail length (`trail_len`) is randomized for each column upon reset.
-    *   *To Do:* Fading trail: Glyphs in a trail could become progressively "dimmer".
+    *   **Implemented:** Fading trail: Glyphs in a trail now become progressively "dimmer" (more sparse) based on their position in the trail and the column's base depth dimming.
 
 ## Milestone 3: User Interaction & Controls
 **Status: Partially Implemented**
