@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codefall - Thumby Matrix Rain</title>
+    <style>
+        body {
+            background-color: #000000;
+            color: #00C800; /* Slightly softer green for general text */
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Prevent horizontal scrollbar from canvas */
+        }
+
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Behind all other content */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.85); /* Semi-transparent black for content readability */
+            position: relative; /* To ensure it's above the canvas */
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #00FF00; /* Bright green for main title */
+            font-size: 3em;
+            text-shadow: 0 0 5px #00FF00, 0 0 10px #00FF00;
+            margin-bottom: 0;
+        }
+
+        h2 {
+            color: #00FF00;
+            border-bottom: 1px solid #008F00;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            color: #33FF33; /* Lighter green for sub-headings */
+            margin-top: 20px;
+        }
+
+        p, li {
+            line-height: 1.6;
+            font-size: 1.1em;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        ul li::before {
+            content: "> "; /* Matrix-style list bullet */
+            color: #00FF00;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+        }
+
+        a {
+            color: #33FF33;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #77FF77;
+            text-decoration: underline;
+        }
+
+        blockquote {
+            border-left: 3px solid #00FF00;
+            margin-left: 0;
+            padding-left: 20px;
+            font-style: italic;
+            color: #99FF99;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #005000;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix-canvas"></canvas>
+
+    <div class="container">
+        <header>
+            <h1>CODEFALL</h1>
+        </header>
+
+        <section id="intro">
+            <p>Take the red pill and dive into <strong>Codefall</strong>! Experience the iconic, mesmerizing digital rain from The Matrix, now flowing endlessly on your Thumby's screen. As Morpheus wisely said, "Unfortunately, no one can be told what the Matrix is. You have to see it for yourself" – and now you can, right in the palm of your hand!</p>
+        </section>
+
+        <section id="features">
+            <h2>🚀 Features</h2>
+            <ul>
+                <li><strong>Iconic Animation:</strong> Watch the legendary digital code "rain" down your Thumby display.</li>
+                <li><strong>Multiple Glyph Sets:</strong> Features Katakana-inspired and abstract glyphs in small, medium, and large sizes, creating a rich, layered visual experience.</li>
+                <li><strong>Depth Simulation:</strong> Code streaks fall at different speeds and dimness levels, giving a sense of depth and perspective.</li>
+                <li><strong>Dynamic Glyph Morphing:</strong> Glyphs don't just fall; they can subtly morph and change, adding to the dynamic and ever-evolving nature of the "Matrix code."</li>
+                <li><strong>Animated Title Screen:</strong> A cool, falling-letter title sequence ("CODEFALL") to draw you in.</li>
+                <li><strong>Interactive Controls:</strong> You're not just a spectator! Control the flow and appearance of the Codefall.</li>
+                <li><strong>Optimized Rendering:</strong> Uses direct pixel manipulation for smooth performance on the Thumby.</li>
+            </ul>
+        </section>
+
+        <section id="controls">
+            <h2>🎮 How to Play / Controls</h2>
+            <p>The game starts with an animated title screen.</p>
+
+            <h3>🎬 Title Screen:</h3>
+            <ul>
+                <li><strong>A Button or B Button:</strong> Press to start the Codefall animation.</li>
+            </ul>
+
+            <h3>🕹️ During Codefall Animation:</h3>
+            <p>The on-screen help text (<code>A:FRZ B:RST</code> and <code>D:SPD/DENS</code>) provides a quick reminder of the controls:</p>
+            <ul>
+                <li><strong>A Button:</strong>
+                    <ul>
+                        <li><strong>FRZ (Freeze/Unfreeze):</strong> Toggles the animation pause state.</li>
+                    </ul>
+                </li>
+                <li><strong>B Button:</strong>
+                    <ul>
+                        <li><strong>RST (Reset):</strong> Resets the Codefall animation with new random streaks.</li>
+                    </ul>
+                </li>
+                <li><strong>D-Pad (Directional Pad):</strong>
+                    <ul>
+                        <li><strong>SPD (Speed Control - Up/Down):</strong> Adjusts the falling speed of the code streaks.</li>
+                        <li><strong>DENS (Density Control - Left/Right):</strong> Modifies the number of active code streaks on screen.</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+        <section id="tech-highlights">
+            <h2>🔧 Technical Highlights</h2>
+            <ul>
+                <li>🎨 <strong>Glyph System:</strong> Utilizes three distinct sets of glyphs (small 3x6, medium 4x8, large 5x10) to enhance the visual depth.</li>
+                <li>⛰️ <strong>Layered Depth:</strong> Five different depth layers, each with configurable speed ranges, base dimming levels, and associated glyph sets.</li>
+                <li>✒️ <strong>Custom Fonts:</strong> Includes custom-designed fonts for the title screen and help text.</li>
+            </ul>
+        </section>
+
+        <section id="morpheus-quote">
+            <h2> M5o_rPHEuS.says</h2>
+            <blockquote>
+                "You take the blue pill, the story ends, you wake up in your bed and believe whatever you want to believe. You take the red pill, you stay in Wonderland, and I show you how deep the rabbit hole goes."
+            </blockquote>
+        </section>
+
+        <footer>
+            <p>Enjoy your journey into the Codefall! 😎</p>
+            <p>
+                <!-- IMPORTANT: Replace this with the actual URL to your GitHub repository -->
+                <a href="https://github.com/YOUR_USERNAME/YOUR_REPOSITORY" target="_blank" rel="noopener noreferrer">View Codefall on GitHub</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let w = canvas.width = window.innerWidth;
+        let h = canvas.height = window.innerHeight;
+
+        // Characters used for the rain - Katakana, Latin, and numbers
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const characters = (katakana + latin + nums).split('');
+
+        const fontSize = 16;
+        let columns = Math.floor(w / fontSize);
+        const drops = [];
+
+        // Initialize drops
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+
+        function drawMatrixRain() {
+            // Semi-transparent black background for fading effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.fillStyle = '#0F0'; // Green text
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = characters[Math.floor(Math.random() * characters.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                // Send drop back to top randomly after it has crossed the screen
+                // or when it's just starting out (for a more staggered effect)
+                if (drops[i] * fontSize > h && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        // Animation loop
+        let animationInterval = setInterval(drawMatrixRain, 33); // ~30 FPS
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            columns = Math.floor(w / fontSize);
+            drops.length = 0; // Clear existing drops
+            for (let x = 0; x < columns; x++) {
+                drops[x] = Math.floor(Math.random() * (h / fontSize)); // Randomize initial positions
+            }
+            // Optional: Clear and restart interval if needed, or just let it adapt
+            // clearInterval(animationInterval);
+            // animationInterval = setInterval(drawMatrixRain, 33);
+        });
+    </script>
+</body>
+</html>
