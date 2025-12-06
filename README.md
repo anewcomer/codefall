@@ -1,6 +1,6 @@
 # codefall
 
-Take the red pill and dive into **Codefall**! Experience the iconic, mesmerizing digital rain from The Matrix, now flowing endlessly on your Thumby's screen. As Morpheus wisely said, "Unfortunately, no one can be told what the Matrix is. You have to see it for yourself" – and now you can, right in the palm of your hand!
+Dive into **Codefall**! Experience the iconic, mesmerizing digital rain from The Matrix, now flowing endlessly on your Thumby's screen. As Morpheus wisely said, "Unfortunately, no one can be told what the Matrix is. You have to see it for yourself" – and now you can, right in the palm of your hand!
 
 ## 🚀 Features
 
@@ -36,9 +36,3 @@ The on-screen help text (`A:FRZ B:RST` and `D:SPD/DENS`) provides a quick remind
 *   🎨 **Glyph System:** Utilizes three distinct sets of glyphs (small 3x6, medium 4x8, large 5x10) to enhance the visual depth.
 *   ⛰️ **Layered Depth:** Five different depth layers, each with configurable speed ranges, base dimming levels, and associated glyph sets.
 *   ✒️ **Custom Fonts:** Includes custom-designed fonts for the title screen and help text.
-
-##  M5o_rPHEuS.says
-
-> "You take the blue pill, the story ends, you wake up in your bed and believe whatever you want to believe. You take the red pill, you stay in Wonderland, and I show you how deep the rabbit hole goes."
-
-Enjoy your journey into the Codefall! 😎
